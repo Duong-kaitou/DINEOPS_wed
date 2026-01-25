@@ -1,0 +1,131 @@
+/* style riêng cho Dashboard */
+:root {
+  --primary-dine: #04612a;
+  --light-bg: #f4f7f5;
+  --sidebar-width: 280px;
+}
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  transition: all 0.3s;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  border-right: 1px solid #eee;
+  z-index: 1000;
+}
+
+.dashboard-card {
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
+.main-content {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+}
+
+.dark-mode .dashboard-card {
+  background-color: #1e1e1e !important;
+  color: #fff;
+}
+/* style riêng cho order */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400;
+  vertical-align: middle;
+}
+
+/* Layout  */
+.order-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--light-bg);
+}
+
+/* Card Món ăn */
+.card-item {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+}
+
+.card-item:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid var(--primary-dine) !important;
+}
+
+.card-item-img {
+  height: 160px;
+  object-fit: cover;
+}
+
+/* Sidebar Đơn hàng */
+.order-summary-sidebar {
+  width: 480px;
+  background-color: white;
+  border-left: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.02);
+  transition: width 0.3s ease;
+}
+
+/* Tăng kích thước tiêu đề và chữ  */
+.order-summary-sidebar h5 {
+  font-size: 1.4rem;
+}
+
+.order-item-card {
+  background-color: #f8faf9;
+  border: none;
+  border-radius: 14px;
+  margin-bottom: 1.2rem;
+  padding: 1.2rem; /* Tăng padding bên trong */
+}
+
+.order-item-card .item-name {
+  font-size: 1.1rem;
+}
+
+/* Tăng kích thước tổng tiền */
+.total-section h4 {
+  font-size: 1.8rem;
+}
+
+/* Các danh mục */
+.category-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.category-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+/* thanh cuộn */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d1d1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dine);
+}

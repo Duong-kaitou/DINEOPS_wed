@@ -215,134 +215,77 @@ const OrderPage = () => {
         </main>
 
         {/* Tóm tắt đơn hàng */}
-        <aside
-          className="bg-white border-start d-none d-xl-flex flex-column shadow-lg"
-          style={{ width: "400px" }}
-        >
-          <div className="p-4 border-bottom d-flex justify-content-between align-items-center bg-white sticky-top">
-            <h5 className="fw-bold mb-0">Chi tiết đơn hàng</h5>
-            <Badge
-              bg="success-subtle"
-              className="text-success rounded-pill px-3 py-2"
-            >
-              Bàn số 12
-            </Badge>
-          </div>
+<aside className="order-summary-sidebar d-none d-xl-flex">
+  <div className="p-4 border-bottom d-flex justify-content-between align-items-center bg-white sticky-top">
+    <h4 className="fw-bold mb-0">Chi tiết đơn hàng</h4> 
+    <Badge bg="success-subtle" className="text-success rounded-pill px-4 py-2 fs-6">
+      Bàn số 12
+    </Badge>
+  </div>
 
-          <div className="flex-grow-1 overflow-auto p-3">
-            {order.length === 0 ? (
-              <div className="text-center text-muted mt-5">
-                <span className="material-symbols-outlined fs-1 d-block mb-2">
-                  shopping_basket
-                </span>
-                Chưa có món nào được chọn
-              </div>
-            ) : (
-              order.map((item) => (
-                <Card
-                  key={item.id}
-                  className="bg-light border-0 mb-3 p-3 shadow-xs"
-                >
-                  <div className="d-flex justify-content-between mb-2">
-                    <div className="d-flex align-items-center gap-2">
-                      <Badge bg="success" className="p-1 px-2">
-                        {item.quantity}
-                      </Badge>
-                      <span className="fw-bold text-dark">{item.name}</span>
-                    </div>
-                    <span className="fw-semibold text-dark">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                  <InputGroup size="sm">
-                    <InputGroup.Text className="bg-white border-end-0">
-                      <span className="material-symbols-outlined fs-5 text-muted">
-                        edit_note
-                      </span>
-                    </InputGroup.Text>
-                    <Form.Control
-                      placeholder="Ghi chú thêm cho bếp..."
-                      className="border-start-0 ps-0 bg-white"
-                      defaultValue={item.note}
-                    />
-                  </InputGroup>
-                </Card>
-              ))
-            )}
+  <div className="flex-grow-1 overflow-auto p-4"> 
+    {order.length === 0 ? (
+      <div className="text-center text-muted mt-5">
+        <span className="material-symbols-outlined style={{ fontSize: '4rem' }}">shopping_basket</span>
+        <p className="mt-3">Chưa có món nào được chọn</p>
+      </div>
+    ) : (
+      order.map((item) => (
+        <div key={item.id} className="order-item-card shadow-xs">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="d-flex align-items-center gap-3">
+              <Badge bg="success" className="p-2 px-3 fs-6">
+                {item.quantity}
+              </Badge>
+              <span className="fw-bold text-dark item-name">{item.name}</span>
+            </div>
+            <span className="fw-bold text-dark fs-5">
+              ${(item.price * item.quantity).toFixed(2)}
+            </span>
           </div>
+          
+          <InputGroup>
+            <InputGroup.Text className="bg-white border-end-0">
+              <span className="material-symbols-outlined text-muted">edit_note</span>
+            </InputGroup.Text>
+            <Form.Control 
+              placeholder="Ghi chú thêm..." 
+              className="border-start-0 ps-0 bg-white py-2" 
+              defaultValue={item.note} 
+            />
+          </InputGroup>
+        </div>
+      ))
+    )}
+  </div>
 
-          {/* Tổng kết và Thanh toán */}
-          <div className="p-4 border-top bg-light mt-auto">
-            <div className="d-flex justify-content-between text-muted mb-1">
-              <span>Tạm tính</span>
-              <span className="fw-bold text-dark">${subtotal.toFixed(2)}</span>
-            </div>
-            <div className="d-flex justify-content-between text-muted mb-3">
-              <span>Thuế (8%)</span>
-              <span className="fw-bold text-dark">${tax.toFixed(2)}</span>
-            </div>
-            <div className="d-flex justify-content-between align-items-center border-top pt-3 mb-4">
-              <h4 className="fw-bold mb-0 text-dark">Tổng tiền</h4>
-              <h4 className="text-success fw-bold mb-0">
-                ${(subtotal + tax).toFixed(2)}
-              </h4>
-            </div>
+  {/* Tổng kết cuối sidebar */}
+  <div className="p-4 border-top bg-light mt-auto total-section">
+    <div className="d-flex justify-content-between text-muted mb-2 fs-5">
+      <span>Tạm tính</span>
+      <span className="fw-bold text-dark">${subtotal.toFixed(2)}</span>
+    </div>
+    <div className="d-flex justify-content-between align-items-center border-top pt-3 mb-4">
+      <h3 className="fw-bold mb-0 text-dark">Tổng tiền</h3>
+      <h2 className="text-success fw-bold mb-0">
+        ${(subtotal + tax).toFixed(2)}
+      </h2>
+    </div>
 
-            <div className="d-grid gap-2">
-              <Button
-                variant="outline-success"
-                size="lg"
-                className="fw-bold d-flex align-items-center justify-content-center gap-2 rounded-3"
-              >
-                <span className="material-symbols-outlined">send</span> Gửi đơn
-                xuống bếp
-              </Button>
-              <Button
-                variant="success"
-                size="lg"
-                className="fw-bold py-3 shadow-sm d-flex align-items-center justify-content-center gap-2 rounded-3"
-              >
-                <span className="material-symbols-outlined">payments</span>{" "}
-                Thanh toán ngay
-              </Button>
-            </div>
-          </div>
-        </aside>
+    <div className="d-grid gap-3">
+      <Button variant="outline-success" size="lg" className="fw-bold py-3">
+        Gửi xuống bếp
+      </Button>
+      <Button variant="success" size="lg" className="fw-bold py-3 shadow-sm fs-5">
+        Thanh toán ngay
+      </Button>
+    </div>
+  </div>
+</aside>
       </div>
 
-      {/* Hiệu ứng CSS bổ sung */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-        
-        .material-symbols-outlined { 
-          font-variation-settings: 'FILL' 0, 'wght' 400; 
-          vertical-align: middle;
-        }
-
-        .card-hover:hover { 
-          transform: translateY(-5px); 
-          box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-          border: 1px solid #198754 !important;
-          transition: all 0.3s ease;
-        }
-
-        .transition { transition: all 0.2s ease-in-out; }
-
-        /* Tối ưu thanh cuộn */
-        ::-webkit-scrollbar {
-          width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-          background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: #888;
-          border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: #555;
-        }
-      `}</style>
+      
+      
     </div>
   );
 };
