@@ -1,0 +1,17 @@
+.btn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #04612A;
+  color: white;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #04612A;
+  color: #04612A;
+}
