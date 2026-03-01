@@ -1,27 +1,79 @@
 import React, { useState, useCallback } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, InputGroup } from 'react-bootstrap';
 import logo from '../../assets/logo.svg';
+import { setAuthTokens, setUserInfo } from '../../utils/localStorage';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
 
+  const baseUrl = import.meta.env.VITE_BASE_URL || '';
+  const loginUrl = `${baseUrl.replace(/\/$/, '')}/api/v1/users/login/`;
+
   const handleChange = useCallback((e) => {
     const { id, value } = e.target;
+    setErrorMessage('');
     setFormData((prev) => ({ ...prev, [id]: value }));
   }, []);
 
   const handleSubmit = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
-      console.log('Login attempt with:', formData);
+
+      if (!formData.username.trim() || !formData.password) {
+        setErrorMessage('Vui lòng nhập đầy đủ thông tin đăng nhập');
+        return;
+      }
+
+      setIsSubmitting(true);
+      setErrorMessage('');
+
+      const payload = {
+        identifier: formData.username.trim(),
+        password: formData.password,
+      };
+
+      try {
+        const response = await fetch(loginUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json().catch(() => null);
+
+        if (!response.ok || !result?.status) {
+          const message = result?.msg || result?.detail || 'Đăng nhập thất bại';
+          throw new Error(message);
+        }
+
+        const accessToken = result?.data?.access_token;
+        const refreshToken = result?.data?.refresh_token;
+
+        if (!accessToken || !refreshToken) {
+          throw new Error('Không nhận được token từ server');
+        }
+
+        setAuthTokens({ accessToken, refreshToken });
+        setUserInfo(result?.data?.user || null);
+        navigate('/dashboard');
+      } catch (error) {
+        setErrorMessage(error.message || 'Có lỗi xảy ra khi đăng nhập');
+      } finally {
+        setIsSubmitting(false);
+      }
     },
-    [formData]
+    [formData, loginUrl, navigate]
   );
 
   return (
@@ -32,7 +84,7 @@ const LoginPage = () => {
           <Col xs={12} sm={10} md={8} lg={5} xl={4}>
             <Card className="border-0 shadow-lg rounded-4 overflow-hidden">
               <Card.Body className="p-4 p-md-5">
-                
+
                 {/* Header - Logo & Title */}
                 <div className="text-center mb-4">
                   <div className="d-inline-block p-2 bg-white shadow-sm rounded-3 mb-3">
@@ -60,6 +112,7 @@ const LoginPage = () => {
                       onChange={handleChange}
                       autoComplete="username"
                       required
+                      disabled={isSubmitting}
                     />
                   </Form.Group>
 
@@ -76,9 +129,10 @@ const LoginPage = () => {
                         onChange={handleChange}
                         autoComplete="current-password"
                         required
+                        disabled={isSubmitting}
                       />
                       {/* Nút ẩn/hiện mật khẩu sử dụng InputGroup của Bootstrap */}
-                      <InputGroup.Text 
+                      <InputGroup.Text
                         className="bg-white border-start-0 rounded-end-3 cursor-pointer"
                         onClick={() => setShowPassword((prev) => !prev)}
                         style={{ cursor: 'pointer' }}
@@ -102,14 +156,19 @@ const LoginPage = () => {
                     </Link>
                   </div>
 
+                  {errorMessage ? (
+                    <div className="text-danger small mb-3 px-1">{errorMessage}</div>
+                  ) : null}
+
                   {/* Submit Button */}
-                  <Button 
-                    variant="primary" 
-                    type="submit" 
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    disabled={isSubmitting}
                     className="w-100 py-2 fw-bold rounded-3 shadow-sm border-0"
                     style={{ backgroundColor: '#e65e19', height: '50px' }}
                   >
-                    Đăng nhập
+                    {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
                   </Button>
                 </Form>
 
