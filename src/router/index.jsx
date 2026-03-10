@@ -4,6 +4,10 @@ import LoginPage from "../page/LoginPage/login";
 import ForgotPasswordPage from "../page/ForgotPasswordPage/forgotpassword"; 
 import Register from "../page/Register/register";
 import Dashboard from "../page/Dashboard/dashboard";
+import InventoryPage from "../page/ingredient/InventoryPage";
+import FloorManagement from "../page/desk diagram/desk diagram";
+import CategoryManagement from "../page/category/category";
+import FoodManagement from "../page/Menu/Menu";
 
 
 export const router = createBrowserRouter([
@@ -33,6 +37,23 @@ export const router = createBrowserRouter([
   {
     path: "/dashboard",
     element: <Dashboard  />,
+  },
+  {
+    path: "/ingredient",
+    element: <InventoryPage />,
+  },
+
+  {
+    path: "/desk-diagram",
+    element: <FloorManagement />,
+  },
+  {
+    path: "/category",
+    element: <CategoryManagement />,
+  },
+  {
+    path: "/menu",
+    element: <FoodManagement />,
   },
   
   
