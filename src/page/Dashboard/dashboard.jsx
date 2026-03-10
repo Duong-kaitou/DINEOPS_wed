@@ -1,20 +1,9 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import logo from "../../assets/logo.svg";
-import "../../assets/style/main.css"; 
+import "../../assets/style/main.css";
+import Sidebar from "../../components/Sidebar";
 
-import {
-  LayoutDashboard,
-  Utensils,
-  Receipt,
-  Users,
-  Search,
-  Sun,
-  Moon,
-  BarChart3,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { Search, Sun, Moon, BarChart3 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -30,15 +19,6 @@ import {
 
 const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
-  const [activeTab, setActiveTab] = useState("Tổng quan");
-
-  const menuItems = [
-    { icon: LayoutDashboard, label: "Tổng quan" },
-    { icon: Utensils, label: "Thực đơn" },
-    { icon: Receipt, label: "Đơn hàng" },
-    { icon: Users, label: "Nhân sự" },
-    { icon: BarChart3, label: "Báo cáo" },
-  ];
 
   const hourlyData = [
     { name: "08:00", value: 1.2 },
@@ -59,84 +39,56 @@ const Dashboard = () => {
   ];
 
   const stats = [
-    { label: "Doanh thu hôm nay", val: "12.500.000", trend: "+12%", sub: "VNĐ" },
+    {
+      label: "Doanh thu hôm nay",
+      val: "12.500.000",
+      trend: "+12%",
+      sub: "VNĐ",
+    },
     { label: "Tổng đơn hàng", val: "123", trend: "Ổn định", sub: "Đơn" },
     { label: "Khách phục vụ", val: "45", trend: "Tăng", sub: "Người" },
     { label: "Số bàn trống", val: "08", trend: "Sẵn sàng", sub: "Bàn" },
   ];
 
   return (
-    // Đổi className cho khớp với main.css của bạn
     <div className={`dashboard-container ${darkMode ? "dark-mode" : ""}`}>
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-logo mb-4 d-flex align-items-center gap-2">
-          <img src={logo} alt="Logo" width="40" />
-          <span className="fw-bold fs-4" style={{ color: "var(--primary-dine)" }}>DINEOPS</span>
-        </div>
+      <Sidebar />
 
-        <ul className="nav nav-pills flex-column mb-auto gap-2">
-          {menuItems.map((item, idx) => (
-            <li key={idx}>
-              <button
-                onClick={() => setActiveTab(item.label)}
-                className="nav-link-custom"
-                style={{
-                    // Ví dụ: gọi thẳng biến --primary-dine từ main.css
-                    backgroundColor: activeTab === item.label ? "var(--primary-dine)" : "transparent",
-                    color: activeTab === item.label ? "white" : "#666",
-                    border: "none",
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "12px 20px",
-                    borderRadius: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px"
-                }}
-              >
-                <item.icon size={20} />
-                <span className="fw-bold">{item.label}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <hr />
-
-        <div className="sidebar-footer d-flex flex-column gap-2">
-          <button className="btn d-flex align-items-center gap-2 text-secondary">
-            <Settings size={20} /> <span>Cài đặt</span>
-          </button>
-          <button className="btn d-flex align-items-center gap-2 text-danger">
-            <LogOut size={20} /> <span>Đăng xuất</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* header */}
       <div className="main-content p-4">
         <nav className="d-flex justify-content-between align-items-center mb-5">
-            <div className="search-bar bg-white px-3 py-2 rounded-pill shadow-sm d-flex align-items-center" style={{ width: "400px" }}>
-              <Search size={18} className="text-secondary me-2" />
-              <input type="text" placeholder="Tìm kiếm dữ liệu..." className="border-0 w-100" style={{ outline: "none" }} />
-            </div>
+          <div
+            className="search-bar bg-white px-3 py-2 rounded-pill shadow-sm d-flex align-items-center"
+            style={{ width: "400px" }}
+          >
+            <Search size={18} className="text-secondary me-2" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm dữ liệu..."
+              className="border-0 w-100"
+              style={{ outline: "none" }}
+            />
+          </div>
 
-            <div className="d-flex align-items-center gap-3">
-              <button 
-                onClick={() => setDarkMode(!darkMode)} 
-                className="btn btn-light rounded-circle p-2 shadow-sm"
-              >
-                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
-              <div className="rounded-circle bg-secondary" style={{ width: "40px", height: "40px" }}></div>
-            </div>
+          <div className="d-flex align-items-center gap-3">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="btn btn-light rounded-circle p-2 shadow-sm"
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <div
+              className="rounded-circle bg-secondary"
+              style={{ width: "40px", height: "40px" }}
+            ></div>
+          </div>
         </nav>
 
         <main>
           <header className="mb-4">
             <h2 className="fw-bold">Xin chào Quản lý</h2>
-            <p className="text-muted">Báo cáo tình hình kinh doanh hôm nay, 14 Tháng 1, 2026</p>
+            <p className="text-muted">
+              Báo cáo tình hình kinh doanh hôm nay, 14 Tháng 1, 2026
+            </p>
           </header>
 
           <div className="row g-4 mb-5">
@@ -161,11 +113,25 @@ const Dashboard = () => {
                 <div style={{ height: "350px" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={hourlyData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} dy={10} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#eee"
+                      />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        dy={10}
+                      />
                       <YAxis hide />
                       <Tooltip cursor={{ fill: "#f8f9fa" }} />
-                      <Bar dataKey="value" fill="var(--primary-dine)" radius={[8, 8, 0, 0]} barSize={45} />
+                      <Bar
+                        dataKey="value"
+                        fill="var(--primary-dine)"
+                        radius={[8, 8, 0, 0]}
+                        barSize={45}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -178,7 +144,13 @@ const Dashboard = () => {
                 <div style={{ height: "350px", position: "relative" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={pieData} innerRadius={80} outerRadius={110} paddingAngle={5} dataKey="value">
+                      <Pie
+                        data={pieData}
+                        innerRadius={80}
+                        outerRadius={110}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
                         {pieData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
@@ -186,7 +158,15 @@ const Dashboard = () => {
                       <Tooltip />
                     </PieChart>
                   </ResponsiveContainer>
-                  <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      textAlign: "center",
+                    }}
+                  >
                     <div className="fs-3 fw-bold">123</div>
                     <div className="small text-muted">TỔNG MÓN</div>
                   </div>
