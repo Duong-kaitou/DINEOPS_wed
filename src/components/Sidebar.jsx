@@ -6,6 +6,8 @@ import {
   Receipt,
   Users,
   BarChart3,
+  Layers,
+  ClipboardList,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -18,9 +20,11 @@ const Sidebar = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: "Tổng quan", path: "/dashboard" },
     { icon: Utensils, label: "Menu", path: "/menu" },
+    { icon: ClipboardList, label: "Đơn hàng", path: "/orders" },
     { icon: Receipt, label: "Nguyên liệu", path: "/ingredient" },
     { icon: Users, label: "Sơ đồ bàn", path: "/desk-diagram" },
     { icon: BarChart3, label: "Danh Mục", path: "/category" },
+    { icon: Layers, label: "Biến thể", path: "/variants" },
   ];
 
   const isActive = (path) => location.pathname === path;

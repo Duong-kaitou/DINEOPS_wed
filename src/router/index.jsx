@@ -8,6 +8,8 @@ import InventoryPage from "../page/ingredient/InventoryPage";
 import FloorManagement from "../page/desk diagram/desk diagram";
 import CategoryManagement from "../page/category/category";
 import FoodManagement from "../page/Menu/Menu";
+import VariantPage from "../page/Variant/VariantPage";
+import OrdersDashboardPage from "../page/Order/OrderPage";
 
 
 export const router = createBrowserRouter([
@@ -54,6 +56,14 @@ export const router = createBrowserRouter([
   {
     path: "/menu",
     element: <FoodManagement />,
+  },
+  {
+    path: "/variants",
+    element: <VariantPage />,
+  },
+  {
+    path: "/orders",
+    element: <OrdersDashboardPage />,
   },
 
 
