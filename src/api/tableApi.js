@@ -1,3 +1,5 @@
+import { apiFetch } from '../../config';
+
 const getAuthToken = () => {
     return localStorage.getItem("access_token") || localStorage.getItem("token");
 };
@@ -15,10 +17,7 @@ const getHeaders = () => {
     return headers;
 };
 
-const getBaseUrl = () => {
-    const baseUrl = import.meta.env.VITE_BASE_URL || "";
-    return baseUrl.replace(/\/$/, "");
-};
+const getBaseUrl = () => "";
 
 const buildQuery = (params = {}) => {
     const search = new URLSearchParams();
@@ -87,7 +86,7 @@ const getErrorMessage = async (response, fallback) => {
 export const getTablesWithPagination = async (params = {}) => {
     const query = buildQuery(params);
     const url = `${getBaseUrl()}/api/v1/tables/${query ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: "GET",
         headers: getHeaders(),
     });
@@ -107,7 +106,7 @@ export const getTables = async (params = {}) => {
 
 export const getTableById = async (id) => {
     const url = `${getBaseUrl()}/api/v1/tables/${id}/`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: "GET",
         headers: getHeaders(),
     });
@@ -122,7 +121,7 @@ export const getTableById = async (id) => {
 
 export const createTable = async (payload) => {
     const url = `${getBaseUrl()}/api/v1/tables/`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify(payload),
@@ -143,7 +142,7 @@ export const createTable = async (payload) => {
 export const updateTable = async (id, payload, method = "PATCH") => {
     const httpMethod = method === "PUT" ? "PUT" : "PATCH";
     const url = `${getBaseUrl()}/api/v1/tables/${id}/`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: httpMethod,
         headers: getHeaders(),
         body: JSON.stringify(payload),
@@ -163,7 +162,7 @@ export const updateTable = async (id, payload, method = "PATCH") => {
 
 export const deleteTable = async (id) => {
     const url = `${getBaseUrl()}/api/v1/tables/${id}/`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: "DELETE",
         headers: getHeaders(),
     });
@@ -181,7 +180,7 @@ export const deleteTable = async (id) => {
 
 export const updateTableStatus = async (id, status) => {
     const url = `${getBaseUrl()}/api/v1/tables/${id}/update-status/`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: "PATCH",
         headers: getHeaders(),
         body: JSON.stringify({ status }),
@@ -201,7 +200,7 @@ export const updateTableStatus = async (id, status) => {
 
 export const getAvailableTables = async () => {
     const url = `${getBaseUrl()}/api/v1/tables/available/`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: "GET",
         headers: getHeaders(),
     });
@@ -216,7 +215,7 @@ export const getAvailableTables = async () => {
 
 export const getTableOrders = async (id) => {
     const url = `${getBaseUrl()}/api/v1/tables/${id}/orders/`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: "GET",
         headers: getHeaders(),
     });

@@ -1,5 +1,7 @@
 
-const API_BASE_URL = "http://localhost:8000/api/v1/inventory";
+import { apiFetch } from '../../config';
+
+const API_BASE_URL = "/api/v1/inventory";
 
 // Hàm hỗ trợ để lấy mã xác thực (token)
 const getAuthToken = () => {
@@ -35,7 +37,7 @@ export const getIngredients = async (page = 1, pageSize = 10, search = "") => {
 
     const url = `${API_BASE_URL}/ingredients/?${params.toString()}`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: getHeaders(true),
     });
@@ -71,7 +73,7 @@ export const getLowStockIngredients = async () => {
   try {
     const url = `${API_BASE_URL}/ingredients/low-stock/`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: getHeaders(true),
     });
@@ -102,7 +104,7 @@ export const getOutOfStockIngredients = async () => {
   try {
     const url = `${API_BASE_URL}/ingredients/out-of-stock/`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: getHeaders(true),
     });
@@ -139,7 +141,7 @@ export const searchIngredients = async (query, page = 1, pageSize = 10) => {
     // Tìm kiếm theo hai cách - thử endpoint /ingredients/ trước
     let url = `${API_BASE_URL}/ingredients/?${params.toString()}`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: getHeaders(true),
     });
@@ -188,7 +190,7 @@ export const adjustIngredientStock = async (
 
     const url = `${API_BASE_URL}/ingredients/${id}/adjust-stock/`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: getHeaders(true),
       body: JSON.stringify({ adjustment, reason }),
@@ -217,7 +219,7 @@ export const getIngredientById = async (id) => {
   try {
     const url = `${API_BASE_URL}/ingredients/${id}/`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: getHeaders(true),
     });
@@ -249,7 +251,7 @@ export const createIngredient = async (ingredientData) => {
 
     const url = `${API_BASE_URL}/ingredients/`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: getHeaders(true),
       body: JSON.stringify(ingredientData),
@@ -284,7 +286,7 @@ export const updateIngredient = async (id, ingredientData) => {
 
     const url = `${API_BASE_URL}/ingredients/${id}/`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "PATCH",
       headers: getHeaders(true),
       body: JSON.stringify(ingredientData),
@@ -318,7 +320,7 @@ export const deleteIngredient = async (id) => {
 
     const deleteUrl = `${API_BASE_URL}/ingredients/${id}/`;
 
-    const response = await fetch(deleteUrl, {
+    const response = await apiFetch(deleteUrl, {
       method: "DELETE",
       headers: getHeaders(true),
     });
