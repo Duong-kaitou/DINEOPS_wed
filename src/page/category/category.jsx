@@ -1,67 +1,74 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Sidebar from "../../components/Sidebar";
 import { Search, Sun, Moon } from "lucide-react";
+import {
+  createCategory,
+  deleteCategory,
+  getCategories,
+  updateCategory,
+} from "../../api/menuApi";
 
 function CategoryManagement() {
   const [darkMode, setDarkMode] = useState(false);
-  const [categories, setCategories] = useState([
-    {
-      id: 1,
-      name: "Món khai vị",
-      description: "Các món nhẹ bắt đầu bữa tiệc",
-      items: 12,
-      active: true,
-    },
-    {
-      id: 2,
-      name: "Món chính",
-      description: "Danh sách các món chính đặc sắc",
-      items: 25,
-      active: true,
-    },
-    {
-      id: 3,
-      name: "Tráng miệng",
-      description: "Bánh ngọt, trái cây và kem",
-      items: 8,
-      active: true,
-    },
-    {
-      id: 4,
-      name: "Đồ uống",
-      description: "Nước giải khát và rượu vang",
-      items: 15,
-      active: true,
-    },
-    {
-      id: 5,
-      name: "Món mùa lễ hội",
-      description: "Các món đặc biệt dịp tết",
-      items: 0,
-      active: false,
-    },
-  ]);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0 });
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     active: true,
   });
 
-  const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const toNumber = (value, fallback = 0) => {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : fallback;
+  };
 
-  const toggleStatus = (id) => {
-    setCategories(
-      categories.map((cat) =>
-        cat.id === id ? { ...cat, active: !cat.active } : cat
-      )
-    );
+  const loadCategories = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+    try {
+      const result = await getCategories({ ordering: "name", search: searchTerm, page: currentPage });
+      setCategories(result.data || []);
+
+      const rawPagination = result.pagination || {};
+      const totalPages = Math.max(
+        1,
+        toNumber(rawPagination.total_pages) || toNumber(rawPagination.pages) || toNumber(rawPagination.last_page) || 1
+      );
+      const totalItems = toNumber(rawPagination.total) || toNumber(rawPagination.count) || (result.data || []).length;
+      setPagination({ totalPages, totalItems });
+    } catch (error) {
+      setErrorMessage(error.message || "Khong the tai danh muc");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, [searchTerm, currentPage]);
+
+  const goToPage = (page) => {
+    const safePage = Math.min(Math.max(1, page), pagination.totalPages);
+    setCurrentPage(safePage);
+  };
+
+  const toggleStatus = async (category) => {
+    try {
+      await updateCategory(category.id, { is_active: !category.is_active }, "PATCH");
+      await loadCategories();
+    } catch (error) {
+      setErrorMessage(error.message || "Khong the cap nhat trang thai");
+    }
   };
 
   const openAddModal = () => {
@@ -75,7 +82,7 @@ function CategoryManagement() {
     setFormData({
       name: category.name,
       description: category.description,
-      active: category.active,
+      active: category.is_active,
     });
     setShowModal(true);
   };
@@ -88,32 +95,45 @@ function CategoryManagement() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (editingCategory) {
-      // Sửa danh mục
-      setCategories(
-        categories.map((cat) =>
-          cat.id === editingCategory.id ? { ...cat, ...formData } : cat
-        )
-      );
-    } else {
-      // Thêm danh mục mới
-      const newCategory = {
-        id: Math.max(...categories.map((c) => c.id), 0) + 1,
-        ...formData,
-        items: 0,
-      };
-      setCategories([...categories, newCategory]);
+    const payload = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      is_active: Boolean(formData.active),
+    };
+
+    if (!payload.name) {
+      setErrorMessage("Ten danh muc khong duoc de trong");
+      return;
     }
 
-    setShowModal(false);
+    setIsSubmitting(true);
+    setErrorMessage("");
+    try {
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, payload, "PATCH");
+      } else {
+        await createCategory(payload);
+      }
+      setShowModal(false);
+      await loadCategories();
+    } catch (error) {
+      setErrorMessage(error.message || "Khong the luu danh muc");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xóa danh mục này?")) {
-      setCategories(categories.filter((cat) => cat.id !== id));
+      try {
+        await deleteCategory(id);
+        await loadCategories();
+      } catch (error) {
+        setErrorMessage(error.message || "Khong the xoa danh muc");
+      }
     }
   };
 
@@ -134,7 +154,10 @@ function CategoryManagement() {
               className="border-0 w-100"
               style={{ outline: "none" }}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setCurrentPage(1);
+                setSearchTerm(e.target.value);
+              }}
             />
           </div>
 
@@ -164,7 +187,7 @@ function CategoryManagement() {
               <div className="card shadow-sm">
                 <div className="card-body">
                   <h6 className="text-muted">Tổng danh mục</h6>
-                  <h4 className="fw-bold">{categories.length}</h4>
+                  <h4 className="fw-bold">{pagination.totalItems}</h4>
                 </div>
               </div>
             </div>
@@ -172,9 +195,9 @@ function CategoryManagement() {
             <div className="col-md-3">
               <div className="card shadow-sm">
                 <div className="card-body">
-                  <h6 className="text-muted">Danh mục hoạt động</h6>
+                  <h6 className="text-muted">Hoạt động</h6>
                   <h4 className="fw-bold text-success">
-                    {categories.filter((c) => c.active).length}
+                    {categories.filter((c) => c.is_active).length}
                   </h4>
                 </div>
               </div>
@@ -185,7 +208,10 @@ function CategoryManagement() {
                 <div className="card-body">
                   <h6 className="text-muted">Tổng số món</h6>
                   <h4 className="fw-bold">
-                    {categories.reduce((sum, cat) => sum + cat.items, 0)}
+                    {categories.reduce(
+                      (sum, cat) => sum + Number(cat.products_count || 0),
+                      0
+                    )}
                   </h4>
                 </div>
               </div>
@@ -196,11 +222,14 @@ function CategoryManagement() {
                 <div className="card-body">
                   <h6 className="text-muted">Danh mục tạm dừng</h6>
                   <h4 className="fw-bold text-warning">
-                    {categories.filter((c) => !c.active).length}
+                    {categories.filter((c) => !c.is_active).length}
                   </h4>
                 </div>
               </div>
             </div>
+
+            {isLoading ? <div className="text-muted mb-3">Dang tai du lieu...</div> : null}
+            {errorMessage ? <div className="alert alert-danger py-2">{errorMessage}</div> : null}
           </div>
 
           {/* Table */}
@@ -219,7 +248,6 @@ function CategoryManagement() {
               <table className="table table-hover align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th>Icon</th>
                     <th>Tên danh mục</th>
                     <th>Mô tả</th>
                     <th className="text-center">Số món</th>
@@ -229,28 +257,19 @@ function CategoryManagement() {
                 </thead>
 
                 <tbody>
-                  {filteredCategories.map((cat) => (
+                  {categories.map((cat) => (
                     <tr
                       key={cat.id}
-                      className={!cat.active ? "text-muted" : ""}
+                      className={!cat.is_active ? "text-muted" : ""}
                     >
-                      <td>
-                        <div
-                          style={{
-                            width: 40,
-                            height: 40,
-                            background: "#e8f5e9",
-                            borderRadius: 8,
-                          }}
-                        />
-                      </td>
+
 
                       <td className="fw-semibold">{cat.name}</td>
 
                       <td>{cat.description}</td>
 
                       <td className="text-center">
-                        <span className="badge bg-secondary">{cat.items}</span>
+                        <span className="badge bg-secondary">{cat.products_count || 0}</span>
                       </td>
 
                       <td className="text-center">
@@ -258,16 +277,14 @@ function CategoryManagement() {
                           <input
                             className="form-check-input"
                             type="checkbox"
-                            checked={cat.active}
-                            onChange={() => toggleStatus(cat.id)}
+                            checked={Boolean(cat.is_active)}
+                            onChange={() => toggleStatus(cat)}
                           />
                         </div>
                       </td>
 
                       <td className="text-end">
-                        <button className="btn btn-sm btn-outline-success me-2">
-                          Xem
-                        </button>
+
 
                         <button
                           className="btn btn-sm btn-outline-primary me-2"
@@ -285,40 +302,69 @@ function CategoryManagement() {
                       </td>
                     </tr>
                   ))}
+                  {!isLoading && categories.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center text-muted py-4">
+                        Không có danh mục trong trang này.
+                      </td>
+                    </tr>
+                  ) : null}
                 </tbody>
               </table>
             </div>
 
-            {/* Pagination */}
-            <div className="card-footer d-flex justify-content-between align-items-center">
+            <div className="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
               <small className="text-muted">
-                Hiển thị {filteredCategories.length} trong số{" "}
-                {categories.length} danh mục
+                Trang {currentPage}/{pagination.totalPages} - Tổng {pagination.totalItems} danh mục
               </small>
 
-              <nav>
-                <ul className="pagination mb-0">
-                  <li className="page-item">
-                    <button className="page-link">‹</button>
-                  </li>
+              <div className="btn-group" role="group" aria-label="Phân trang danh mục">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage <= 1 || isLoading}
+                >
+                  Trước
+                </button>
+                {Array.from({ length: pagination.totalPages }, (_, index) => index + 1)
+                  .filter(
+                    (page) =>
+                      page === 1 ||
+                      page === pagination.totalPages ||
+                      Math.abs(page - currentPage) <= 1
+                  )
+                  .map((page, index, arr) => {
+                    const prevPage = arr[index - 1];
+                    const showDots = prevPage && page - prevPage > 1;
 
-                  <li className="page-item active">
-                    <button className="page-link">1</button>
-                  </li>
-
-                  <li className="page-item">
-                    <button className="page-link">2</button>
-                  </li>
-
-                  <li className="page-item">
-                    <button className="page-link">3</button>
-                  </li>
-
-                  <li className="page-item">
-                    <button className="page-link">›</button>
-                  </li>
-                </ul>
-              </nav>
+                    return (
+                      <React.Fragment key={`cat-page-${page}`}>
+                        {showDots ? (
+                          <button type="button" className="btn btn-sm btn-outline-secondary" disabled>
+                            ...
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${page === currentPage ? "btn-primary" : "btn-outline-secondary"}`}
+                          onClick={() => goToPage(page)}
+                          disabled={isLoading}
+                        >
+                          {page}
+                        </button>
+                      </React.Fragment>
+                    );
+                  })}
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage >= pagination.totalPages || isLoading}
+                >
+                  Sau
+                </button>
+              </div>
             </div>
           </div>
         </main>
@@ -383,12 +429,13 @@ function CategoryManagement() {
                   <button
                     type="button"
                     className="btn btn-secondary"
+                    disabled={isSubmitting}
                     onClick={() => setShowModal(false)}
                   >
                     Hủy
                   </button>
-                  <button type="submit" className="btn btn-success">
-                    {editingCategory ? "Cập nhật" : "Thêm"}
+                  <button type="submit" className="btn btn-success" disabled={isSubmitting}>
+                    {isSubmitting ? "Dang luu..." : editingCategory ? "Cập nhật" : "Thêm"}
                   </button>
                 </div>
               </form>

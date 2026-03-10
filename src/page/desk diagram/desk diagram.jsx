@@ -1,8 +1,24 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Sidebar from "../../components/Sidebar";
 import { Search, Sun, Moon } from "lucide-react";
-import { getTables } from "../../api/tableApi";
+import {
+  createTable,
+  deleteTable,
+  getTablesWithPagination,
+  updateTable,
+  updateTableStatus,
+} from "../../api/tableApi";
+
+const TABLE_STATUSES = ["available", "occupied", "reserved"];
+
+const mapApiTableToUi = (table) => ({
+  id: table.id,
+  name: table.table_number || `Bàn ${table.id}`,
+  seats: Number(table.capacity) || 0,
+  location: table.location || "-",
+  status: TABLE_STATUSES.includes(table.status) ? table.status : "available",
+});
 
 function FloorManagement() {
   const [darkMode, setDarkMode] = useState(false);
@@ -10,6 +26,9 @@ function FloorManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoadingTables, setIsLoadingTables] = useState(true);
   const [tablesError, setTablesError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0 });
 
   const [showModal, setShowModal] = useState(false);
   const [editingTable, setEditingTable] = useState(null);
@@ -20,63 +39,47 @@ function FloorManagement() {
     status: "available",
   });
 
-  useEffect(() => {
-    let isMounted = true;
+  const toNumber = (value, fallback = 0) => {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : fallback;
+  };
 
-    const loadTables = async () => {
-      setIsLoadingTables(true);
-      setTablesError("");
+  const loadTables = async () => {
+    setIsLoadingTables(true);
+    setTablesError("");
 
-      try {
-        const apiTables = await getTables();
-        const mappedTables = apiTables.map((table) => ({
-          id: table.id,
-          name: table.table_number || `Bàn ${table.id}`,
-          seats: Number(table.capacity) || 0,
-          location: table.location || "-",
-          status: ["available", "occupied", "reserved"].includes(table.status)
-            ? table.status
-            : "available",
-        }));
+    try {
+      const result = await getTablesWithPagination({ search: searchTerm, page: currentPage });
+      const apiTables = result.data || [];
+      const mappedTables = apiTables.map(mapApiTableToUi);
+      setTables(mappedTables);
 
-        if (isMounted) {
-          setTables(mappedTables);
-        }
-      } catch (error) {
-        console.error("Lỗi khi tải danh sách bàn:", error);
-        if (isMounted) {
-          setTablesError(
-            error?.message ||
-            "Không thể tải danh sách bàn. Vui lòng kiểm tra đăng nhập hoặc API."
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingTables(false);
-        }
-      }
-    };
-
-    loadTables();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const filteredTables = useMemo(() => {
-    const keyword = searchTerm.trim().toLowerCase();
-    if (!keyword) {
-      return tables;
-    }
-
-    return tables.filter((table) => {
-      return (
-        String(table.name).toLowerCase().includes(keyword) ||
-        String(table.location).toLowerCase().includes(keyword)
+      const rawPagination = result.pagination || {};
+      const totalPages = Math.max(
+        1,
+        toNumber(rawPagination.total_pages) || toNumber(rawPagination.pages) || toNumber(rawPagination.last_page) || 1
       );
-    });
-  }, [searchTerm, tables]);
+      const totalItems = toNumber(rawPagination.total) || toNumber(rawPagination.count) || mappedTables.length;
+      setPagination({ totalPages, totalItems });
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách bàn:", error);
+      setTablesError(
+        error?.message ||
+        "Không thể tải danh sách bàn. Vui lòng kiểm tra đăng nhập hoặc API."
+      );
+    } finally {
+      setIsLoadingTables(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTables();
+  }, [searchTerm, currentPage]);
+
+  const goToPage = (page) => {
+    const safePage = Math.min(Math.max(1, page), pagination.totalPages);
+    setCurrentPage(safePage);
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -116,29 +119,66 @@ function FloorManagement() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (editingTable) {
-      setTables(
-        tables.map((table) =>
-          table.id === editingTable.id ? { ...table, ...formData } : table
-        )
-      );
-    } else {
-      const newTable = {
-        id: Math.max(...tables.map((t) => t.id), 0) + 1,
-        ...formData,
-      };
-      setTables([...tables, newTable]);
+    const payload = {
+      table_number: formData.name.trim(),
+      capacity: Number(formData.seats) || 0,
+      status: formData.status,
+      location: formData.location.trim(),
+    };
+
+    if (!payload.table_number) {
+      setTablesError("Tên bàn không được để trống.");
+      return;
     }
 
-    setShowModal(false);
+    setIsSaving(true);
+    setTablesError("");
+
+    try {
+      if (editingTable) {
+        const statusChangedOnly =
+          editingTable.status !== payload.status &&
+          editingTable.name === payload.table_number &&
+          Number(editingTable.seats) === payload.capacity &&
+          String(editingTable.location || "") === payload.location;
+
+        if (statusChangedOnly) {
+          await updateTableStatus(editingTable.id, payload.status);
+        } else {
+          await updateTable(editingTable.id, payload, "PATCH");
+        }
+      } else {
+        await createTable(payload);
+      }
+
+      await loadTables();
+      setShowModal(false);
+    } catch (error) {
+      console.error("Lỗi khi lưu bàn:", error);
+      setTablesError(
+        error?.message ||
+        "Không thể lưu thông tin bàn. Vui lòng thử lại sau."
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = (tableId) => {
+  const handleDelete = async (tableId) => {
     if (window.confirm("Bạn có chắc muốn xóa bàn này?")) {
-      setTables(tables.filter((table) => table.id !== tableId));
+      try {
+        setTablesError("");
+        await deleteTable(tableId);
+        await loadTables();
+      } catch (error) {
+        console.error("Lỗi khi xóa bàn:", error);
+        setTablesError(
+          error?.message || "Không thể xóa bàn. Vui lòng thử lại sau."
+        );
+      }
     }
   };
 
@@ -159,7 +199,10 @@ function FloorManagement() {
               className="border-0 w-100"
               style={{ outline: "none" }}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setCurrentPage(1);
+                setSearchTerm(e.target.value);
+              }}
             />
           </div>
 
@@ -197,12 +240,11 @@ function FloorManagement() {
             ) : null}
 
             <div className="row g-3">
-              {filteredTables.map((table) => (
+              {tables.map((table) => (
                 <div className="col-md-3 col-lg-2" key={table.id}>
                   <div className="card shadow-sm h-100">
                     <div className="card-body">
-                      <div className="d-flex justify-content-between mb-3">
-                        <strong>{table.id}</strong>
+                      <div className="d-flex justify-content-end mb-3">
                         {getStatusBadge(table.status)}
                       </div>
 
@@ -216,7 +258,7 @@ function FloorManagement() {
                         {table.location}
                       </small>
 
-                      <div className="d-flex gap-2">
+                      <div className="d-flex gap-2 justify-content-end">
                         <button
                           className="btn btn-sm btn-warning"
                           onClick={() => openEditModal(table)}
@@ -235,6 +277,14 @@ function FloorManagement() {
                 </div>
               ))}
 
+              {!isLoadingTables && tables.length === 0 ? (
+                <div className="col-12">
+                  <div className="text-center text-muted py-4 border rounded">
+                    Không có bàn trong trang này.
+                  </div>
+                </div>
+              ) : null}
+
               <div className="col-md-3 col-lg-2">
                 <div className="card h-100 text-center d-flex align-items-center justify-content-center">
                   <button
@@ -244,6 +294,60 @@ function FloorManagement() {
                     + Thêm bàn
                   </button>
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <small className="text-muted">
+                Trang {currentPage}/{pagination.totalPages} - Tổng {pagination.totalItems} bàn
+              </small>
+
+              <div className="btn-group" role="group" aria-label="Phân trang bàn">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage <= 1 || isLoadingTables}
+                >
+                  Trước
+                </button>
+                {Array.from({ length: pagination.totalPages }, (_, index) => index + 1)
+                  .filter(
+                    (page) =>
+                      page === 1 ||
+                      page === pagination.totalPages ||
+                      Math.abs(page - currentPage) <= 1
+                  )
+                  .map((page, index, arr) => {
+                    const prevPage = arr[index - 1];
+                    const showDots = prevPage && page - prevPage > 1;
+
+                    return (
+                      <React.Fragment key={`table-page-${page}`}>
+                        {showDots ? (
+                          <button type="button" className="btn btn-sm btn-outline-secondary" disabled>
+                            ...
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${page === currentPage ? "btn-primary" : "btn-outline-secondary"}`}
+                          onClick={() => goToPage(page)}
+                          disabled={isLoadingTables}
+                        >
+                          {page}
+                        </button>
+                      </React.Fragment>
+                    );
+                  })}
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage >= pagination.totalPages || isLoadingTables}
+                >
+                  Sau
+                </button>
               </div>
             </div>
           </div>
@@ -320,12 +424,13 @@ function FloorManagement() {
                   <button
                     type="button"
                     className="btn btn-secondary"
+                    disabled={isSaving}
                     onClick={() => setShowModal(false)}
                   >
                     Hủy
                   </button>
-                  <button type="submit" className="btn btn-primary">
-                    {editingTable ? "Lưu" : "Thêm"}
+                  <button type="submit" className="btn btn-primary" disabled={isSaving}>
+                    {isSaving ? "Đang lưu..." : editingTable ? "Lưu" : "Thêm"}
                   </button>
                 </div>
               </form>
