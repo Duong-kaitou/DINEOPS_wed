@@ -1,3 +1,5 @@
+import { apiFetch } from '../../config';
+
 const getAuthToken = () => {
     return localStorage.getItem("access_token") || localStorage.getItem("token");
 };
@@ -15,10 +17,7 @@ const getHeaders = () => {
     return headers;
 };
 
-const getBaseUrl = () => {
-    const baseUrl = import.meta.env.VITE_BASE_URL || "";
-    return baseUrl.replace(/\/$/, "");
-};
+const getBaseUrl = () => "";
 
 const normalizeProductsResponse = (responseBody) => {
     if (Array.isArray(responseBody)) {
@@ -66,7 +65,7 @@ const buildProductsUrl = (page, perPage) => {
 
 export const getProducts = async (page = 1, perPage) => {
     const url = buildProductsUrl(page, perPage);
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
         method: "GET",
         headers: getHeaders(),
     });

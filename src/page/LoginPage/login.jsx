@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, InputGroup } from 'react-bootstrap';
 import logo from '../../assets/logo.svg';
 import { setAuthTokens, setUserInfo } from '../../utils/localStorage';
+import { apiFetch } from '../../../config';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -14,9 +15,6 @@ const LoginPage = () => {
     username: '',
     password: '',
   });
-
-  const baseUrl = import.meta.env.VITE_BASE_URL || '';
-  const loginUrl = `${baseUrl.replace(/\/$/, '')}/api/v1/users/login/`;
 
   const handleChange = useCallback((e) => {
     const { id, value } = e.target;
@@ -42,7 +40,7 @@ const LoginPage = () => {
       };
 
       try {
-        const response = await fetch(loginUrl, {
+        const response = await apiFetch('/api/v1/users/login/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -73,7 +71,7 @@ const LoginPage = () => {
         setIsSubmitting(false);
       }
     },
-    [formData, loginUrl, navigate]
+    [formData, navigate]
   );
 
   return (

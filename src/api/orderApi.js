@@ -1,11 +1,10 @@
+import { apiFetch } from '../../config';
+
 const getAuthToken = () => {
     return localStorage.getItem("access_token") || localStorage.getItem("token");
 };
 
-const getBaseUrl = () => {
-    const baseUrl = import.meta.env.VITE_BASE_URL || "";
-    return `${baseUrl.replace(/\/$/, "")}/api/v1/orders`;
-};
+const getBaseUrl = () => "/api/v1/orders";
 
 const getHeaders = (includeAuth = false) => {
     const headers = {
@@ -76,7 +75,7 @@ const getErrorMessage = async (response, fallback) => {
 };
 
 const request = async (url, options = {}) => {
-    const response = await fetch(url, options);
+    const response = await apiFetch(url, options);
     if (!response.ok) {
         const message = await getErrorMessage(
             response,
