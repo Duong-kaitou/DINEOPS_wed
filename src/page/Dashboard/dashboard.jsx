@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../assets/style/main.css";
 import Sidebar from "../../components/Sidebar";
+import { getTables } from "../../api/tableApi";
+import { getOrdersAnalytics } from "../../api/orderApi";
+import { getProductsSummary } from "../../api/productApi";
 
-import { Search, Sun, Moon, BarChart3 } from "lucide-react";
+import { Search, Sun, Moon } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -19,17 +22,117 @@ import {
 
 const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
+  const [chartMode, setChartMode] = useState("month");
+  const [orderStats, setOrderStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    loadedOrders: 0,
+    isLoaded: false,
+  });
+  const [hourlyData, setHourlyData] = useState(
+    Array.from({ length: 24 }, (_, hour) => ({
+      name: `${String(hour).padStart(2, "0")}:00`,
+      value: 0,
+    }))
+  );
+  const [tableStats, setTableStats] = useState({
+    available: 0,
+    total: 0,
+    isLoaded: false,
+  });
+  const [productStats, setProductStats] = useState({
+    totalProducts: 0,
+    loadedProducts: 0,
+    isLoaded: false,
+  });
 
-  const hourlyData = [
-    { name: "08:00", value: 1.2 },
-    { name: "10:00", value: 2.5 },
-    { name: "12:00", value: 4.5 },
-    { name: "14:00", value: 7.0 },
-    { name: "16:00", value: 9.5 },
-    { name: "18:00", value: 8.0 },
-    { name: "20:00", value: 5.5 },
-    { name: "22:00", value: 3.5 },
-  ];
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadOrders = async () => {
+      try {
+        const analytics = await getOrdersAnalytics(chartMode);
+        if (isMounted) {
+          setOrderStats({
+            totalRevenue: analytics.totalRevenue,
+            totalOrders: analytics.totalOrders,
+            loadedOrders: analytics.loadedOrders,
+            isLoaded: true,
+          });
+          setHourlyData(analytics.chartData);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thống kê đơn hàng:", error);
+        if (isMounted) {
+          setOrderStats((prev) => ({ ...prev, isLoaded: true }));
+        }
+      }
+    };
+
+    loadOrders();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [chartMode]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTables = async () => {
+      try {
+        const tables = await getTables();
+        const available = tables.filter((table) => {
+          const status = String(table?.status || "").toLowerCase();
+          return status === "available" || status === "trống";
+        }).length;
+
+        if (isMounted) {
+          setTableStats({
+            available,
+            total: tables.length,
+            isLoaded: true,
+          });
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thống kê bàn:", error);
+        if (isMounted) {
+          setTableStats((prev) => ({ ...prev, isLoaded: true }));
+        }
+      }
+    };
+
+    const loadProducts = async () => {
+      try {
+        const summary = await getProductsSummary();
+        if (isMounted) {
+          setProductStats({ ...summary, isLoaded: true });
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thống kê món:", error);
+        if (isMounted) {
+          setProductStats((prev) => ({ ...prev, isLoaded: true }));
+        }
+      }
+    };
+
+    loadTables();
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("vi-VN").format(Math.round(value || 0));
+  };
+
+  const currentDateLabel = useMemo(() => {
+    const now = new Date();
+    return `Báo cáo tình hình kinh doanh hôm nay, ${now.getDate()} Tháng ${now.getMonth() + 1
+      }, ${now.getFullYear()}`;
+  }, []);
 
   const pieData = [
     { name: "Phở Bò", value: 50, color: "#04612A" },
@@ -38,17 +141,39 @@ const Dashboard = () => {
     { name: "Khác", value: 5, color: "#D1E7D1" },
   ];
 
-  const stats = [
+  const stats = useMemo(() => [
     {
       label: "Doanh thu hôm nay",
-      val: "12.500.000",
-      trend: "+12%",
+      val: formatCurrency(orderStats.totalRevenue),
+      trend: orderStats.isLoaded
+        ? `Đã tổng hợp ${orderStats.loadedOrders} đơn từ tất cả trang`
+        : "Đang tải...",
       sub: "VNĐ",
     },
-    { label: "Tổng đơn hàng", val: "123", trend: "Ổn định", sub: "Đơn" },
+    {
+      label: "Tổng đơn hàng",
+      val: String(orderStats.totalOrders),
+      trend: orderStats.isLoaded ? "Cập nhật từ API" : "Đang tải...",
+      sub: "Đơn",
+    },
     { label: "Khách phục vụ", val: "45", trend: "Tăng", sub: "Người" },
-    { label: "Số bàn trống", val: "08", trend: "Sẵn sàng", sub: "Bàn" },
-  ];
+    {
+      label: "Số bàn trống",
+      val: String(tableStats.available).padStart(2, "0"),
+      trend: tableStats.isLoaded
+        ? `${tableStats.available}/${tableStats.total} bàn đang trống`
+        : "Đang tải...",
+      sub: "Bàn",
+    },
+  ], [
+    orderStats.totalRevenue,
+    orderStats.loadedOrders,
+    orderStats.totalOrders,
+    orderStats.isLoaded,
+    tableStats.available,
+    tableStats.total,
+    tableStats.isLoaded,
+  ]);
 
   return (
     <div className={`dashboard-container ${darkMode ? "dark-mode" : ""}`}>
@@ -86,9 +211,7 @@ const Dashboard = () => {
         <main>
           <header className="mb-4">
             <h2 className="fw-bold">Xin chào Quản lý</h2>
-            <p className="text-muted">
-              Báo cáo tình hình kinh doanh hôm nay, 14 Tháng 1, 2026
-            </p>
+            <p className="text-muted">{currentDateLabel}</p>
           </header>
 
           <div className="row g-4 mb-5">
@@ -100,7 +223,6 @@ const Dashboard = () => {
                     <h3 className="fw-bold mb-0">{item.val}</h3>
                     <small className="text-muted">{item.sub}</small>
                   </div>
-                  <div className="small text-success fw-bold">{item.trend}</div>
                 </div>
               </div>
             ))}
@@ -109,7 +231,22 @@ const Dashboard = () => {
           <div className="row g-4">
             <div className="col-12 col-xl-8">
               <div className="dashboard-card bg-white">
-                <h5 className="fw-bold mb-4">Biểu đồ doanh thu theo giờ</h5>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <h5 className="fw-bold mb-0">
+                    {chartMode === "month"
+                      ? "Biểu đồ doanh thu theo ngày trong tháng"
+                      : "Biểu đồ doanh thu theo giờ"}
+                  </h5>
+                  <select
+                    className="form-select form-select-sm"
+                    style={{ width: "170px" }}
+                    value={chartMode}
+                    onChange={(e) => setChartMode(e.target.value)}
+                  >
+                    <option value="day">Theo ngày</option>
+                    <option value="month">Theo tháng</option>
+                  </select>
+                </div>
                 <div style={{ height: "350px" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={hourlyData}>
@@ -167,7 +304,9 @@ const Dashboard = () => {
                       textAlign: "center",
                     }}
                   >
-                    <div className="fs-3 fw-bold">123</div>
+                    <div className="fs-3 fw-bold">
+                      {productStats.isLoaded ? productStats.totalProducts : "..."}
+                    </div>
                     <div className="small text-muted">TỔNG MÓN</div>
                   </div>
                 </div>

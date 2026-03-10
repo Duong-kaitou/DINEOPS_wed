@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import LoginPage from "../page/LoginPage/login";
-import ForgotPasswordPage from "../page/ForgotPasswordPage/forgotpassword"; 
+import ForgotPasswordPage from "../page/ForgotPasswordPage/forgotpassword";
 import Register from "../page/Register/register";
 import Dashboard from "../page/Dashboard/dashboard";
 import InventoryPage from "../page/ingredient/InventoryPage";
@@ -15,11 +15,11 @@ export const router = createBrowserRouter([
     path: "/",
     element: <MainLayout />,
     children: [
-      { 
-        index: true, 
+      {
+        index: true,
         element: <Navigate to="/login" replace />,
       },
- 
+
     ],
   },
   {
@@ -36,7 +36,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/dashboard",
-    element: <Dashboard  />,
+    element: <Dashboard />,
   },
   {
     path: "/ingredient",
@@ -55,6 +55,6 @@ export const router = createBrowserRouter([
     path: "/menu",
     element: <FoodManagement />,
   },
-  
-  
+
+
 ]);

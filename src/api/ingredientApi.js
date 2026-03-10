@@ -1,5 +1,4 @@
-// Cấu hình điểm cuối API - Dựa trên DineOps API v2.0.0
-// Tài liệu: Mục 8. API QUẢN LÝ KHO
+
 const API_BASE_URL = "http://localhost:8000/api/v1/inventory";
 
 // Hàm hỗ trợ để lấy mã xác thực (token)
@@ -23,12 +22,6 @@ const getHeaders = (includeAuth = true) => {
   return headers;
 };
 
-// ==================== QUẢN LÝ NGUYÊN LIỆU ====================
-
-// 8.1.1 Liệt kê nguyên liệu (Nội bộ)
-// GET /api/v1/inventory/ingredients/
-// Tham số: page (trang), page_size (số lượng mỗi trang), search (tìm kiếm)
-// Phản hồi: {status, code, msg, data: {count, next, previous, results}}
 export const getIngredients = async (page = 1, pageSize = 10, search = "") => {
   try {
     const params = new URLSearchParams({
@@ -205,8 +198,8 @@ export const adjustIngredientStock = async (
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
         errorData.detail ||
-          errorData.message ||
-          `Không thể điều chỉnh tồn kho: ${response.statusText}`
+        errorData.message ||
+        `Không thể điều chỉnh tồn kho: ${response.statusText}`
       );
     }
 
@@ -266,8 +259,8 @@ export const createIngredient = async (ingredientData) => {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
         errorData.detail ||
-          errorData.message ||
-          `Không thể tạo nguyên liệu: ${response.statusText}`
+        errorData.message ||
+        `Không thể tạo nguyên liệu: ${response.statusText}`
       );
     }
 
@@ -301,8 +294,8 @@ export const updateIngredient = async (id, ingredientData) => {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
         errorData.detail ||
-          errorData.message ||
-          `Không thể cập nhật nguyên liệu: ${response.statusText}`
+        errorData.message ||
+        `Không thể cập nhật nguyên liệu: ${response.statusText}`
       );
     }
 
@@ -334,8 +327,8 @@ export const deleteIngredient = async (id) => {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
         errorData.detail ||
-          errorData.message ||
-          `Không thể xóa nguyên liệu: ${response.statusText}`
+        errorData.message ||
+        `Không thể xóa nguyên liệu: ${response.statusText}`
       );
     }
 
