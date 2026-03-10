@@ -1,61 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Sidebar from "../../components/Sidebar";
 import { Search, Sun, Moon } from "lucide-react";
+import { getTables } from "../../api/tableApi";
 
 function FloorManagement() {
   const [darkMode, setDarkMode] = useState(false);
-  const [tables, setTables] = useState([
-    {
-      id: 1,
-      name: "Bàn 01",
-      seats: 4,
-      location: "Gần cửa sổ",
-      status: "available",
-    },
-    {
-      id: 2,
-      name: "Bàn 02",
-      seats: 2,
-      location: "Trung tâm",
-      status: "occupied",
-    },
-    {
-      id: 3,
-      name: "Phòng VIP 01",
-      seats: 8,
-      location: "VIP",
-      status: "reserved",
-    },
-    {
-      id: 4,
-      name: "Bàn 04",
-      seats: 4,
-      location: "Ban công",
-      status: "available",
-    },
-    {
-      id: 5,
-      name: "Bàn 05",
-      seats: 4,
-      location: "Cửa sổ trái",
-      status: "occupied",
-    },
-    {
-      id: 6,
-      name: "Bàn 06",
-      seats: 6,
-      location: "Trung tâm",
-      status: "available",
-    },
-    {
-      id: 7,
-      name: "Bàn 07",
-      seats: 4,
-      location: "Quầy Bar",
-      status: "available",
-    },
-  ]);
+  const [tables, setTables] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoadingTables, setIsLoadingTables] = useState(true);
+  const [tablesError, setTablesError] = useState("");
 
   const [showModal, setShowModal] = useState(false);
   const [editingTable, setEditingTable] = useState(null);
@@ -65,6 +19,64 @@ function FloorManagement() {
     location: "",
     status: "available",
   });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTables = async () => {
+      setIsLoadingTables(true);
+      setTablesError("");
+
+      try {
+        const apiTables = await getTables();
+        const mappedTables = apiTables.map((table) => ({
+          id: table.id,
+          name: table.table_number || `Bàn ${table.id}`,
+          seats: Number(table.capacity) || 0,
+          location: table.location || "-",
+          status: ["available", "occupied", "reserved"].includes(table.status)
+            ? table.status
+            : "available",
+        }));
+
+        if (isMounted) {
+          setTables(mappedTables);
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách bàn:", error);
+        if (isMounted) {
+          setTablesError(
+            error?.message ||
+            "Không thể tải danh sách bàn. Vui lòng kiểm tra đăng nhập hoặc API."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingTables(false);
+        }
+      }
+    };
+
+    loadTables();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredTables = useMemo(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+    if (!keyword) {
+      return tables;
+    }
+
+    return tables.filter((table) => {
+      return (
+        String(table.name).toLowerCase().includes(keyword) ||
+        String(table.location).toLowerCase().includes(keyword)
+      );
+    });
+  }, [searchTerm, tables]);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -146,6 +158,8 @@ function FloorManagement() {
               placeholder="Tìm kiếm bàn..."
               className="border-0 w-100"
               style={{ outline: "none" }}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
@@ -171,8 +185,19 @@ function FloorManagement() {
 
           <div className="dashboard-card bg-white p-4">
             <h5 className="fw-bold mb-3">Danh sách bàn</h5>
+
+            {isLoadingTables ? (
+              <div className="text-muted mb-3">Đang tải danh sách bàn...</div>
+            ) : null}
+
+            {!isLoadingTables && tablesError ? (
+              <div className="alert alert-danger py-2 mb-3" role="alert">
+                {tablesError}
+              </div>
+            ) : null}
+
             <div className="row g-3">
-              {tables.map((table) => (
+              {filteredTables.map((table) => (
                 <div className="col-md-3 col-lg-2" key={table.id}>
                   <div className="card shadow-sm h-100">
                     <div className="card-body">
