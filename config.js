@@ -10,7 +10,6 @@ const NGROK_HEADERS = {
 
 export function apiFetch(url, options = {}) {
 
-    // nếu url đã là http thì dùng luôn
     const fullUrl = url.startsWith("http")
         ? url
         : `${API_BASE}${url}`;
