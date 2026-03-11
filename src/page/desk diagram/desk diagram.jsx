@@ -208,7 +208,10 @@ function FloorManagement() {
   const [tablesError, setTablesError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0 });
+  const [pagination, setPagination] = useState({
+    totalPages: 1,
+    totalItems: 0,
+  });
 
   const [showModal, setShowModal] = useState(false);
   const [editingTable, setEditingTable] = useState(null);
@@ -223,16 +226,25 @@ function FloorManagement() {
     setIsLoadingTables(true);
     setTablesError("");
     try {
-      const result = await getTablesWithPagination({ search: searchTerm, page: currentPage });
+      const result = await getTablesWithPagination({
+        search: searchTerm,
+        page: currentPage,
+      });
       const apiTables = result.data || [];
       const mappedTables = apiTables.map(mapApiTableToUi);
       setTables(mappedTables);
       const rawPagination = result.pagination || {};
       const totalPages = Math.max(
         1,
-        toNumber(rawPagination.total_pages) || toNumber(rawPagination.pages) || toNumber(rawPagination.last_page) || 1
+        toNumber(rawPagination.total_pages) ||
+        toNumber(rawPagination.pages) ||
+        toNumber(rawPagination.last_page) ||
+        1
       );
-      const totalItems = toNumber(rawPagination.total) || toNumber(rawPagination.count) || mappedTables.length;
+      const totalItems =
+        toNumber(rawPagination.total) ||
+        toNumber(rawPagination.count) ||
+        mappedTables.length;
       setPagination({ totalPages, totalItems });
     } catch (error) {
       setTablesError(error?.message || "Không thể tải danh sách bàn. Vui lòng kiểm tra đăng nhập hoặc API.");

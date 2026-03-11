@@ -245,9 +245,15 @@ function CategoryManagement() {
       const rawPagination = result.pagination || {};
       const totalPages = Math.max(
         1,
-        toNumber(rawPagination.total_pages) || toNumber(rawPagination.pages) || toNumber(rawPagination.last_page) || 1
+        toNumber(rawPagination.total_pages) ||
+        toNumber(rawPagination.pages) ||
+        toNumber(rawPagination.last_page) ||
+        1
       );
-      const totalItems = toNumber(rawPagination.total) || toNumber(rawPagination.count) || (result.data || []).length;
+      const totalItems =
+        toNumber(rawPagination.total) ||
+        toNumber(rawPagination.count) ||
+        (result.data || []).length;
       setPagination({ totalPages, totalItems });
     } catch (error) {
       setErrorMessage(error.message || "Không thể tải danh mục");
@@ -262,7 +268,11 @@ function CategoryManagement() {
 
   const toggleStatus = async (category) => {
     try {
-      await updateCategory(category.id, { is_active: !category.is_active }, "PATCH");
+      await updateCategory(
+        category.id,
+        { is_active: !category.is_active },
+        "PATCH"
+      );
       await loadCategories();
     } catch (error) {
       setErrorMessage(error.message || "Không thể cập nhật trạng thái");
