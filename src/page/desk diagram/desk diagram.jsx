@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Sidebar from "../../components/Sidebar";
 import { Search, Sun, Moon } from "lucide-react";
+import "./desk diagram.css";
 import {
   createTable,
   deleteTable,
@@ -28,7 +29,10 @@ function FloorManagement() {
   const [tablesError, setTablesError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0 });
+  const [pagination, setPagination] = useState({
+    totalPages: 1,
+    totalItems: 0,
+  });
 
   const [showModal, setShowModal] = useState(false);
   const [editingTable, setEditingTable] = useState(null);
@@ -49,7 +53,10 @@ function FloorManagement() {
     setTablesError("");
 
     try {
-      const result = await getTablesWithPagination({ search: searchTerm, page: currentPage });
+      const result = await getTablesWithPagination({
+        search: searchTerm,
+        page: currentPage,
+      });
       const apiTables = result.data || [];
       const mappedTables = apiTables.map(mapApiTableToUi);
       setTables(mappedTables);
@@ -57,15 +64,21 @@ function FloorManagement() {
       const rawPagination = result.pagination || {};
       const totalPages = Math.max(
         1,
-        toNumber(rawPagination.total_pages) || toNumber(rawPagination.pages) || toNumber(rawPagination.last_page) || 1
+        toNumber(rawPagination.total_pages) ||
+          toNumber(rawPagination.pages) ||
+          toNumber(rawPagination.last_page) ||
+          1
       );
-      const totalItems = toNumber(rawPagination.total) || toNumber(rawPagination.count) || mappedTables.length;
+      const totalItems =
+        toNumber(rawPagination.total) ||
+        toNumber(rawPagination.count) ||
+        mappedTables.length;
       setPagination({ totalPages, totalItems });
     } catch (error) {
       console.error("Lỗi khi tải danh sách bàn:", error);
       setTablesError(
         error?.message ||
-        "Không thể tải danh sách bàn. Vui lòng kiểm tra đăng nhập hoặc API."
+          "Không thể tải danh sách bàn. Vui lòng kiểm tra đăng nhập hoặc API."
       );
     } finally {
       setIsLoadingTables(false);
@@ -159,8 +172,7 @@ function FloorManagement() {
     } catch (error) {
       console.error("Lỗi khi lưu bàn:", error);
       setTablesError(
-        error?.message ||
-        "Không thể lưu thông tin bàn. Vui lòng thử lại sau."
+        error?.message || "Không thể lưu thông tin bàn. Vui lòng thử lại sau."
       );
     } finally {
       setIsSaving(false);
@@ -299,10 +311,15 @@ function FloorManagement() {
 
             <div className="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
               <small className="text-muted">
-                Trang {currentPage}/{pagination.totalPages} - Tổng {pagination.totalItems} bàn
+                Trang {currentPage}/{pagination.totalPages} - Tổng{" "}
+                {pagination.totalItems} bàn
               </small>
 
-              <div className="btn-group" role="group" aria-label="Phân trang bàn">
+              <div
+                className="btn-group"
+                role="group"
+                aria-label="Phân trang bàn"
+              >
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-secondary"
@@ -311,7 +328,10 @@ function FloorManagement() {
                 >
                   Trước
                 </button>
-                {Array.from({ length: pagination.totalPages }, (_, index) => index + 1)
+                {Array.from(
+                  { length: pagination.totalPages },
+                  (_, index) => index + 1
+                )
                   .filter(
                     (page) =>
                       page === 1 ||
@@ -325,13 +345,21 @@ function FloorManagement() {
                     return (
                       <React.Fragment key={`table-page-${page}`}>
                         {showDots ? (
-                          <button type="button" className="btn btn-sm btn-outline-secondary" disabled>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary"
+                            disabled
+                          >
                             ...
                           </button>
                         ) : null}
                         <button
                           type="button"
-                          className={`btn btn-sm ${page === currentPage ? "btn-primary" : "btn-outline-secondary"}`}
+                          className={`btn btn-sm ${
+                            page === currentPage
+                              ? "btn-primary"
+                              : "btn-outline-secondary"
+                          }`}
                           onClick={() => goToPage(page)}
                           disabled={isLoadingTables}
                         >
@@ -344,7 +372,9 @@ function FloorManagement() {
                   type="button"
                   className="btn btn-sm btn-outline-secondary"
                   onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage >= pagination.totalPages || isLoadingTables}
+                  disabled={
+                    currentPage >= pagination.totalPages || isLoadingTables
+                  }
                 >
                   Sau
                 </button>
@@ -429,7 +459,11 @@ function FloorManagement() {
                   >
                     Hủy
                   </button>
-                  <button type="submit" className="btn btn-primary" disabled={isSaving}>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={isSaving}
+                  >
                     {isSaving ? "Đang lưu..." : editingTable ? "Lưu" : "Thêm"}
                   </button>
                 </div>

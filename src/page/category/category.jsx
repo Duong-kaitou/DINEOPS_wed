@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Sidebar from "../../components/Sidebar";
 import { Search, Sun, Moon } from "lucide-react";
+import "./category.css";
 import {
   createCategory,
   deleteCategory,
@@ -20,7 +21,10 @@ function CategoryManagement() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0 });
+  const [pagination, setPagination] = useState({
+    totalPages: 1,
+    totalItems: 0,
+  });
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -36,15 +40,25 @@ function CategoryManagement() {
     setIsLoading(true);
     setErrorMessage("");
     try {
-      const result = await getCategories({ ordering: "name", search: searchTerm, page: currentPage });
+      const result = await getCategories({
+        ordering: "name",
+        search: searchTerm,
+        page: currentPage,
+      });
       setCategories(result.data || []);
 
       const rawPagination = result.pagination || {};
       const totalPages = Math.max(
         1,
-        toNumber(rawPagination.total_pages) || toNumber(rawPagination.pages) || toNumber(rawPagination.last_page) || 1
+        toNumber(rawPagination.total_pages) ||
+          toNumber(rawPagination.pages) ||
+          toNumber(rawPagination.last_page) ||
+          1
       );
-      const totalItems = toNumber(rawPagination.total) || toNumber(rawPagination.count) || (result.data || []).length;
+      const totalItems =
+        toNumber(rawPagination.total) ||
+        toNumber(rawPagination.count) ||
+        (result.data || []).length;
       setPagination({ totalPages, totalItems });
     } catch (error) {
       setErrorMessage(error.message || "Khong the tai danh muc");
@@ -64,7 +78,11 @@ function CategoryManagement() {
 
   const toggleStatus = async (category) => {
     try {
-      await updateCategory(category.id, { is_active: !category.is_active }, "PATCH");
+      await updateCategory(
+        category.id,
+        { is_active: !category.is_active },
+        "PATCH"
+      );
       await loadCategories();
     } catch (error) {
       setErrorMessage(error.message || "Khong the cap nhat trang thai");
@@ -228,8 +246,12 @@ function CategoryManagement() {
               </div>
             </div>
 
-            {isLoading ? <div className="text-muted mb-3">Dang tai du lieu...</div> : null}
-            {errorMessage ? <div className="alert alert-danger py-2">{errorMessage}</div> : null}
+            {isLoading ? (
+              <div className="text-muted mb-3">Dang tai du lieu...</div>
+            ) : null}
+            {errorMessage ? (
+              <div className="alert alert-danger py-2">{errorMessage}</div>
+            ) : null}
           </div>
 
           {/* Table */}
@@ -262,14 +284,14 @@ function CategoryManagement() {
                       key={cat.id}
                       className={!cat.is_active ? "text-muted" : ""}
                     >
-
-
                       <td className="fw-semibold">{cat.name}</td>
 
                       <td>{cat.description}</td>
 
                       <td className="text-center">
-                        <span className="badge bg-secondary">{cat.products_count || 0}</span>
+                        <span className="badge bg-secondary">
+                          {cat.products_count || 0}
+                        </span>
                       </td>
 
                       <td className="text-center">
@@ -284,8 +306,6 @@ function CategoryManagement() {
                       </td>
 
                       <td className="text-end">
-
-
                         <button
                           className="btn btn-sm btn-outline-primary me-2"
                           onClick={() => openEditModal(cat)}
@@ -315,10 +335,15 @@ function CategoryManagement() {
 
             <div className="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
               <small className="text-muted">
-                Trang {currentPage}/{pagination.totalPages} - Tổng {pagination.totalItems} danh mục
+                Trang {currentPage}/{pagination.totalPages} - Tổng{" "}
+                {pagination.totalItems} danh mục
               </small>
 
-              <div className="btn-group" role="group" aria-label="Phân trang danh mục">
+              <div
+                className="btn-group"
+                role="group"
+                aria-label="Phân trang danh mục"
+              >
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-secondary"
@@ -327,7 +352,10 @@ function CategoryManagement() {
                 >
                   Trước
                 </button>
-                {Array.from({ length: pagination.totalPages }, (_, index) => index + 1)
+                {Array.from(
+                  { length: pagination.totalPages },
+                  (_, index) => index + 1
+                )
                   .filter(
                     (page) =>
                       page === 1 ||
@@ -341,13 +369,21 @@ function CategoryManagement() {
                     return (
                       <React.Fragment key={`cat-page-${page}`}>
                         {showDots ? (
-                          <button type="button" className="btn btn-sm btn-outline-secondary" disabled>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary"
+                            disabled
+                          >
                             ...
                           </button>
                         ) : null}
                         <button
                           type="button"
-                          className={`btn btn-sm ${page === currentPage ? "btn-primary" : "btn-outline-secondary"}`}
+                          className={`btn btn-sm ${
+                            page === currentPage
+                              ? "btn-primary"
+                              : "btn-outline-secondary"
+                          }`}
                           onClick={() => goToPage(page)}
                           disabled={isLoading}
                         >
@@ -434,8 +470,16 @@ function CategoryManagement() {
                   >
                     Hủy
                   </button>
-                  <button type="submit" className="btn btn-success" disabled={isSubmitting}>
-                    {isSubmitting ? "Dang luu..." : editingCategory ? "Cập nhật" : "Thêm"}
+                  <button
+                    type="submit"
+                    className="btn btn-success"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting
+                      ? "Dang luu..."
+                      : editingCategory
+                      ? "Cập nhật"
+                      : "Thêm"}
                   </button>
                 </div>
               </form>

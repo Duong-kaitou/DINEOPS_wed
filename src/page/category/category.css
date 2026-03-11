@@ -1,0 +1,85 @@
+:root {
+  --bg-grad: linear-gradient(180deg, #f8fafc, #fff);
+  --muted-shadow: rgba(16, 24, 40, 0.08);
+  --accent-rgb: 13, 110, 253;
+  --success-shadow: rgba(25, 135, 84, 0.08);
+  --card-shadow: 0 6px 20px rgba(2, 6, 23, 0.06);
+  --modal-shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
+  --radius: 10px;
+}
+
+.dashboard-container .main-content {
+  background: var(--bg-grad);
+}
+
+.search-bar {
+  width: 100%;
+  max-width: 540px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border-radius: 999px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.search-bar:focus-within {
+  box-shadow: 0 6px 20px var(--muted-shadow);
+  transform: translateY(-1px);
+}
+
+.card.shadow-sm {
+  border: 0;
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+.card .card-body h6 {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.table thead th {
+  border-bottom: 0;
+}
+.table tbody tr:hover {
+  background: rgba(var(--accent-rgb), 0.03);
+}
+.table .badge {
+  font-weight: 600;
+}
+
+.btn-success {
+  box-shadow: 0 6px 18px var(--success-shadow);
+}
+
+.modal.d-block {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.45);
+}
+.modal-content {
+  border-radius: 12px;
+  box-shadow: var(--modal-shadow);
+  overflow: hidden;
+}
+.modal-header {
+  background: linear-gradient(
+    90deg,
+    rgba(2, 132, 199, 0.06),
+    rgba(25, 135, 84, 0.03)
+  );
+}
+
+@media (max-width: 767px) {
+  .search-bar {
+    max-width: 100%;
+  }
+  .card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

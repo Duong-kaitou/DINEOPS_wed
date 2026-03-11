@@ -1,0 +1,100 @@
+:root {
+  --bg: linear-gradient(180deg, #f8fafc, #fff);
+  --muted: #6c757d;
+  --accent-rgb: 13, 110, 253;
+  --card-radius: 10px;
+  --card-shadow: 0 8px 28px rgba(2, 6, 23, 0.06);
+}
+
+.dashboard-container .main-content {
+  background: var(--bg);
+}
+
+/* Search */
+.search-bar {
+  max-width: 540px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border-radius: 999px;
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
+}
+.search-bar:focus-within {
+  box-shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
+  transform: translateY(-1px);
+}
+
+/* Category pills */
+.btn-group .btn {
+  border-radius: 999px;
+}
+.btn-success {
+  box-shadow: 0 6px 18px rgba(25, 135, 84, 0.08);
+}
+
+/* Cards & table */
+.card.shadow-sm {
+  border: 0;
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+.table thead th {
+  border-bottom: 0;
+}
+.table tbody tr {
+  transition: background 0.12s ease, transform 0.08s ease;
+}
+.table tbody tr:hover {
+  background: rgba(var(--accent-rgb), 0.03);
+  transform: translateY(-1px);
+}
+.table tbody tr.selected {
+  background: rgba(var(--accent-rgb), 0.06);
+}
+
+/* clickable row helper */
+.clickable-row {
+  cursor: pointer;
+}
+.clickable-row.selected {
+  box-shadow: 0 6px 18px rgba(13, 110, 253, 0.06);
+  transform: translateY(-2px);
+}
+
+/* Food image */
+.card-img-top {
+  object-fit: cover;
+}
+
+/* Right panel */
+.col-xl-4 .card {
+  position: sticky;
+  top: 1.25rem;
+}
+
+/* Modal polish */
+.modal.d-block {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.45);
+}
+.modal-content {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .col-xl-4 .card {
+    position: static;
+  }
+  .search-bar {
+    max-width: 100%;
+  }
+}
